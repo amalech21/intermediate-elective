@@ -1,0 +1,34 @@
+---
+title: "Intermediate Elective 3"
+author: "Abby Malech"
+format: pdf
+date: "2026-05-11"
+execute: 
+  warning: false
+  messages: false
+---
+
+# Set-up
+
+## Read-in packages
+```{r}
+#| label: load-packages
+
+
+
+```
+
+## Read-in data
+```{r}
+#| label: load-data
+
+
+
+
+
+```
+
+
+
+
+
