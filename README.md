@@ -31,4 +31,4 @@ library(patchwork)
 
 ## Rendered Output
 
-# rendered pdf for intermediate elective 2 can be found [here](https://github.com/amalech21/intermediate-elective/blob/main/code/intermediate-elective-1-malech.pdf)
+# rendered pdf for intermediate elective 2 can be found [here](https://github.com/amalech21/intermediate-elective/blob/main/code/intermediate-elective-2-malech.pdf)
