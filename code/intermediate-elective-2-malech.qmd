@@ -223,31 +223,105 @@ At the end of this section, include code to save your final figure as a .jpg or 
 ```{r}
 #| label: veg
 
-purple_needle_data <- pools_explicit0 |> 
-  filter(psoc == "Stipa_pulchra") |> 
-  group_by(year) |> 
-  summarise(mean_pc_year = mean(sum_pc, na.rm = TRUE))
+# create new object from veg
+native_spp <- veg |> 
+# filter only native observations
+  filter(cover_category == "NATIVE COVER") |> 
+# pull to extract data frame column as a vector
+  pull(psoc)
+
+# random sample
+sample(native_spp, 10)
+
+# create new object from pools_explicit0
+species_rich <- pools_explicit0 |> 
+# group by year and pool
+  group_by(year, transect_name) |> 
+# filter data frame with vector \nto get native species, 
+# also filter percent cover to identofy species presence
+  filter(psoc %in% native_spp, mean_pc > 0) |> 
+# species richness calculation
+  summarize(spp_rich = n_distinct(psoc)) |> 
+  # ungroup data frame
+  ungroup()
+
+# sample 10 rows
+slice_sample(species_rich, n = 10)
+
+species_rich_final <- species_rich |>
+  group_by(year) |>
+  mutate(mean_pool = mean(spp_rich)) |> 
+  ungroup()
+            
+
 ```
+
 
 ```{r}
 
 # color choice
 #prismatic::color(c(insert colors here))\
 
-ggplot(purple_needle_data) +
+ggplot(data = species_rich_final) +
   geom_hline(yintercept = 0, color = "lightgrey") +
-  geom_hline(yintercept = 1000, color = "lightgrey") +
-  geom_hline(yintercept = 2000, color = "lightgrey") +
-  geom_hline(yintercept = 3000, color = "lightgrey") +
+  geom_hline(yintercept = 10, color = "lightgrey") +
+  geom_hline(yintercept = 20, color = "lightgrey") +
+  geom_hline(yintercept = 30, color = "lightgrey") +
   
   geom_col(aes(
-    x = year
-    y = 
-  ))
-
-
-
-
+    x = year, spp_rich,
+    y = spp_rich,
+    fill = transect_name
+    ),
+    position = "dodge2",
+    show.legend = TRUE,
+    alpha = 0.9) +
+  
+  scale_fill_manual(
+    values = c("#c7522a", "#d68a58", "#e5c185", "#fbf2c4","#b8cdab", "#74a892", "#3a978c", "#008585")) +
+                    
+  geom_point(aes(
+    x = year, spp_rich,
+    y = mean_pool),
+    size = 3,
+    color = "gray12") +
+  
+  geom_segment(aes(
+    x = year, spp_rich,
+    y = 0,
+    xend = year,
+    yend = 40),
+    linetype = "dashed",
+    color = "gray12") +
+  
+  annotate(x = 20, y = 10, label = "10", geom = "text", color = "gray12", family = "Bell MT") +
+  annotate(x = 20, y = 20, label = "20", geom = "text", color = "gray12", family = "Bell MT") +
+  annotate(x = 20, y = 30, label = "30", geom = "text", color = "gray12", family = "Bell MT") +
+  scale_y_continuous(limits = c(0, 50),
+                     expand = c(0,0),
+                     breaks = c(0, 10, 20, 30)) +
+  coord_polar() +
+  theme(legend.position = "bottom",
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(color = "gray12",
+                                   size = 12),
+        panel.background = element_rect(fill = "white",
+                                        color = "white"),
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(color = "gray12",
+                            family = "Bell MT"),
+        plot.title = element_text(face = "bold",
+                                  size = 25,
+                                  hjust = 0.05),
+        plot.caption = element_text(size = 10,
+                                    hjust = .5)) 
+  # guides(fill = guide_colorsteps(barwidth = 15,
+  #                                barheight = .5,
+  #                                title.position = "top",
+  #                                title.hjust = .5))
 ```
 
 
