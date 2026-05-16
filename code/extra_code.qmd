@@ -1,0 +1,107 @@
+---
+title: "extra"
+author: "Abby M"
+format: pdf
+---
+
+```{r}
+
+# color choice
+#prismatic::color(c(insert colors here))\
+
+ggplot(data = species_rich_final) +
+  geom_hline(yintercept = 0, color = "lightgrey") +
+  geom_hline(yintercept = 10, color = "lightgrey") +
+  geom_hline(yintercept = 20, color = "lightgrey") +
+  geom_hline(yintercept = 30, color = "lightgrey") +
+  
+  geom_col(aes(
+    x = as.numeric(factor(year)),
+    y = spp_rich,
+    fill = transect_name
+    ),
+    position = "dodge2",
+    show.legend = TRUE,
+    alpha = 0.9) +
+  
+  scale_fill_manual(
+    values = c("#c7522a", "#d68a58", "#e5c185", "#fbf2c4","#b8cdab", "#74a892", "#3a978c", "#008585")) +
+                    
+  geom_point(aes(
+    x = as.numeric(factor(year)),
+    y = mean_pool),
+    size = 3,
+    color = "gray12") +
+  
+  geom_segment(aes(
+    x = as.numeric(factor(year)),
+    y = 0,
+    xend = as.numeric(factor(year)),
+    yend = 40),
+    linetype = "dashed",
+    color = "gray12") +
+  
+  annotate(x = 20, y = 10, label = "10", geom = "text", color = "gray12", family = "Bell MT") +
+  annotate(x = 20, y = 20, label = "20", geom = "text", color = "gray12", family = "Bell MT") +
+  annotate(x = 20, y = 30, label = "30", geom = "text", color = "gray12", family = "Bell MT") +
+  scale_y_continuous(limits = c(0, 50),
+                     expand = c(0,0),
+                     breaks = c(0, 10, 20, 30)) +
+  scale_x_continuous(breaks = 1:length(unique(species_rich_final$year)),
+                   labels = sort(unique(species_rich_final$year))) +
+  coord_polar() +
+  theme(legend.position = "bottom",
+        axis.title = element_blank(),
+        axis.ticks = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(color = "gray12",
+                                   size = 12),
+        panel.background = element_rect(fill = "white",
+                                        color = "white"),
+        panel.grid = element_blank(),
+        panel.grid.major.x = element_blank(),
+        text = element_text(color = "gray12",
+                            family = "Bell MT"),
+        plot.title = element_text(face = "bold",
+                                  size = 25,
+                                  hjust = 0.05),
+        plot.caption = element_text(size = 10,
+                                    hjust = .5)) 
+  # guides(fill = guide_colorsteps(barwidth = 15,
+  #                                barheight = .5,
+  #                                title.position = "top",
+  #                                title.hjust = .5))
+```
+
+
+
+
+
+
+```{r}
+ggplot(species_rich_final) +
+  
+  geom_col(aes(
+    x = as.numeric(factor(year)),
+    y = spp_rich,
+    fill = transect_name
+  ),
+  position = "dodge2",
+  alpha = 0.9) +
+  
+  geom_point(aes(
+    x = as.numeric(factor(year)),
+    y = mean_pool
+  ),
+  size = 3,
+  color = "gray12") +
+  
+  scale_x_continuous(
+    breaks = seq_along(unique(species_rich_final$year)),
+    labels = sort(unique(species_rich_final$year))
+  ) +
+  
+  scale_y_continuous(limits = c(0, 50), expand = c(0, 0)) +
+  
+  coord_polar()
+```
