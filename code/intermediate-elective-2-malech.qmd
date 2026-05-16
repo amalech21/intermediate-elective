@@ -25,6 +25,13 @@ library(tidyverse)
 library(here)
 library(janitor)
 library(snakecase)
+library(Cairo)
+
+# customization
+library(prismatic)
+library(extrafont)
+library(scales)
+
 
 # wrapping axis labels
 library(scales)
@@ -32,12 +39,8 @@ library(scales)
 # reading in .xlsx files
 library(readxl)
 
-# visualizing missing data
-library(naniar)
-
 # arranging plots
 library(patchwork)
-
 ```
 
 ## Read-in data
@@ -220,15 +223,9 @@ At the end of this section, include code to save your final figure as a .jpg or 
 ```{r}
 #| label: veg
 
-
-veg_data <- pools_explicit0
-
-
-
-
-
-
-
-
+purple_needle_data <- pools_explicit0 |> 
+  filter(psoc == "Stipa_pulchra") |> 
+  group_by(year) |> 
+  summarise(mean_pc_year = mean(sum_pc, na.rm = TRUE))
 ```
 
