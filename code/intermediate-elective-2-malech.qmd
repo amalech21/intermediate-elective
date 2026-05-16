@@ -31,7 +31,7 @@ library(Cairo)
 library(prismatic)
 library(extrafont)
 library(scales)
-
+library(stringr)
 
 # wrapping axis labels
 library(scales)
@@ -228,4 +228,32 @@ purple_needle_data <- pools_explicit0 |>
   group_by(year) |> 
   summarise(mean_pc_year = mean(sum_pc, na.rm = TRUE))
 ```
+
+```{r}
+
+# color choice
+#prismatic::color(c(insert colors here))\
+
+ggplot(purple_needle_data) +
+  geom_hline(yintercept = 0, color = "lightgrey") +
+  geom_hline(yintercept = 1000, color = "lightgrey") +
+  geom_hline(yintercept = 2000, color = "lightgrey") +
+  geom_hline(yintercept = 3000, color = "lightgrey") +
+  
+  geom_col(aes(
+    x = year
+    y = 
+  ))
+
+
+
+
+```
+
+
+
+
+
+
+
 
