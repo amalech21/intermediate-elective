@@ -8,7 +8,7 @@ format:
          \usepackage{fvextra}
          \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
          \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
-date: "2026-05-11"
+date: "2026-05-15"
 execute: 
   warning: false
   messages: false
@@ -20,7 +20,23 @@ execute:
 ```{r}
 #| label: load-packages
 
+# general use and cleaning
+library(tidyverse)
+library(here)
+library(janitor)
+library(snakecase)
 
+# wrapping axis labels
+library(scales)
+
+# reading in .xlsx files
+library(readxl)
+
+# visualizing missing data
+library(naniar)
+
+# arranging plots
+library(patchwork)
 
 ```
 
@@ -28,19 +44,152 @@ execute:
 ```{r}
 #| label: load-data
 
+# WEEK 4 data
 
+veg <- read_csv(here("data", "veg.csv"))
 
+metadata <- read_csv(here("data", "vp_veg_metadata.csv"))
 
+# WEEK 5 data
+# taxonomic information
+taxon_list <- read_csv(here("data", "taxon_list.csv")) 
 
+# aquatic invertebrates
+aq_ins <- read_xlsx(here("data", "Aquatic Sampling Data-2026-03-10.xlsx"),
+                    sheet = "Aquatic Insects") 
+
+# site information
+sites <- read_xlsx(here("data", "Aquatic Sampling Data-2026-03-10.xlsx"),
+                   sheet = "sites")
+
+# water quality information
+water_quality <- read_xlsx(here("data", "Aquatic Sampling Data-2026-03-10.xlsx"),
+                           sheet = "Water Quality",
+                           na = c("", "n/a", "N/A", "over", "173+")) 
+```
+
+## Class code
+```{r}
+#| label: class-code
+
+# WEEK 4
+
+# create a new object from veg
+pools_explicit0 <- veg |> 
+  # filter all occurrences where transect_name contains VP
+  filter(str_detect(transect_name, "VP") &
+           site == "ncos") |> 
+  # complete all possible combinations of year, pool, psoc and distance
+  complete(year, transect_name, psoc, transect_distance,
+           # fill values of percent cover with 0
+           fill = list(percent_cover = 0)
+           ) |>
+  # group by year, pool, and psoc
+  group_by(year, transect_name, psoc) |>
+  # calculate total percent cover across all quads
+  summarize(sum_pc = sum(percent_cover, na.rm = TRUE)) |>
+  # ungroup the data frame
+  ungroup() |>
+  # create a new column called year_pool from year and transect name
+  unite("year_pool", year, transect_name, remove = TRUE) |> 
+  # join with metadata data frame
+  left_join(metadata, by = "year_pool") |> 
+  # calculate mean percent cover from total percent cover/number of quadrats
+  mutate(mean_pc = sum_pc/num_quad)
+
+# WEEK 5
+
+# creating new object from sites
+ncos_sites <- sites |> 
+  # filter to only include NCOS sites sampled four times a year
+  filter(sector == "NCOS" & sampling_frequency == "Quarterly")
+
+# creating new clean object from taxon_list
+taxon_list_clean <- taxon_list |> 
+  # converting taxon name to snake case (no spaces or capital letters,
+  # only underscores)
+  mutate(verbatim_name = to_any_case(verbatim_name, case = "snake"))
+
+# creating new clean object from water quality
+water_quality_clean <- water_quality |> 
+  # clean column names
+  clean_names() |> 
+  # filtering join: only include sites in ncos_sites
+  semi_join(ncos_sites, by = "site") |> 
+  # create new column to join with later data frames
+  unite("date_site", date, site, remove = TRUE) |> 
+  # group by date_site column
+  group_by(date_site) |> 
+  # calculate median pH, salinity, DO
+  summarize(med_ph = median(p_h, na.rm = TRUE),
+            med_sal = median(salinity_ppt, na.rm = TRUE),
+            med_do = median(dissolved_oxygen_mg_l, na.rm = TRUE)) |> 
+  # ungroup data frame
+  ungroup() |> 
+  # filter out salinity outliers
+  filter(date_site != "2022-08-12_NVBR") 
+
+# creating new clean object from aquatic inverts
+aq_ins_clean <- aq_ins |> 
+  # clean column names
+  clean_names() |> 
+  # filtering join: only include sites occurring in ncos_sites
+  semi_join(ncos_sites, by = c("site")) |> 
+  # renaming columns
+  rename(date = date_on_vial) |> 
+  # select columns of interest
+  select(date, sample_type, site,
+         ostracod,
+         copepod,
+         hemiptera_corixidae_boatman,
+         cladocera,
+         nematode,
+         diptera_ceratopogonidae, 
+         annelida_oligochaete,
+         diptera_chironomid,
+         annelida_polychaete) |> 
+  # filter to only include "filtered beaker" samples
+  filter(sample_type %in% c("FB 250", "FB250")) |> 
+  # convert the data frame to long format
+  pivot_longer(cols = ostracod:annelida_polychaete,
+               names_to = "taxon",
+               values_to = "abundance") |> 
+  # group by date, site, taxon
+  group_by(date, site, taxon) |> 
+  # calculate average abundance per liter (sum abundance divided by 7.5 liters)
+  summarize(ave_lit = sum(abundance, na.rm = TRUE)/7.5) |> 
+  # ungroup data frame
+  ungroup() |> 
+  # create a new column called `date_site` to join with water quality
+  unite("date_site", date, site, remove = FALSE) |> 
+  # join with water quality
+  left_join(water_quality_clean, by = c("date_site")) |> 
+  # join with taxon list
+  left_join(taxon_list_clean, by = c("taxon" = "verbatim_name")) |> 
+  # add full names of sites
+  mutate(site_full = case_when(
+    site == "NVBR" ~ "North of Venoco Bridge",
+    site == "NEC" ~ "South of Venoco Bridge",
+    site == "NMC" ~ "Main Channel",
+    site == "NPB" ~ "South of Phelps Bridge",
+    site == "NPB1" ~ "North of Phelps Bridge",
+    site == "NPB2" ~ "Phelps Road",
+    site == "NWP" ~  "West Pond",
+    site == "NDC" ~ "Devereux Creek"
+  )) |> 
+  # setting factor levels for site
+  mutate(site_full = fct_reorder(site_full, med_sal, .fun = "median", .na_rm = TRUE),
+         site_full = fct_rev(site_full))
 ```
 
 # 1. Explain your inspiration
 
 In 1-2 sentences each, describe:
 
-- which visualization you chose for your inspiration
-- why it makes sense for your dataset of choice
+The visualization I chose for my inspiration was [Tobias Stalder's "Hiking Locations in Washington"](https://github.com/toebR/Tidy-Tuesday/blob/master/hiking/dataviz_hiking.png). This makes sense for the data sets that I am utilizing because I am trying to find the relationship between vegetation and its explanatory variables as well as invertebrate abundance and its explanatory variables. The circular graph will be able to show the abundance of both vegetation and invertebrates, as well as a statistical summary of the mean. 
+
 - which variables from your dataset will be shown in your visualization, and what visual components they map onto (axes, shapes, colors, etc.)
+
 
 # 2. Plan your figure
 
@@ -63,3 +212,23 @@ At the end of this section, include code to save your final figure as a .jpg or 
 - your process of using someone else’s code to create a visualization
 - challenges you encountered as you made your visualization
 - how your visualization differs from visualizations you made in class, for assignments, or for a previous elective
+
+
+
+## Vegetation circle visualization
+
+```{r}
+#| label: veg
+
+
+veg_data <- pools_explicit0
+
+
+
+
+
+
+
+
+```
+
