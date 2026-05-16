@@ -22,6 +22,7 @@ library(patchwork)
 ├── code                                          
 │   ├── intermediate-elective-2-malech.pdf        # elective document
 │   └── intermediate-elective-2-malech.qmd
+│   └── extra_code.qmd                            # extra code (not used in final)
 ├── data
 │   ├── Aquatic Sampling Data-2026-03-10.xlsx     # invertebrate survey data
 │   └── taxon_list.csv                            # taxonomic information
