@@ -255,30 +255,29 @@ species_rich_final$year <- as.factor(species_rich_final$year)
 ```{r}
 #| label: veg-vis
 
-highlight_color <- "#4A9782"
-
-colors <- get_theme_colors(
-  palette = c(
-      "Mosaic & Tile" = highlight_color,
-      "Glass" = highlight_color, 
-      "Bronze & Copper" = highlight_color,
-      "Ceramic" = highlight_color,
-      "Steel & Iron" = highlight_color,
-      "Stone" = highlight_color,
-      "Paint & Pigments" = highlight_color
-
-  )
-)
+# highlight_color <- "#4A9782"
+# 
+# colors <- palette = c(
+#       "VP-01" = highlight_color,
+#       "VP-02" = highlight_color,
+#       "VP-03" = highlight_color,
+#       "VP-04" = highlight_color,
+#       "VP-05" = highlight_color,
+#       "VP-06" = highlight_color,
+#       "VP-07" = highlight_color,
+#       "VP-08" = highlight_color
+#   )
+# )
 
 ### |- titles and caption ----
 title_text <- str_glue("INSERT TITLE")
 subtitle_text <- str_glue("SUBTITLE")
 
-caption_text <- create_social_caption(
-  tt_year = 2025,
-  tt_week = 29,
-  source_text =  "MTA Permanent Art Catalog: Beginning 1980"
-)
+# caption_text <- create_social_caption(
+#   tt_year = 2025,
+#   tt_week = 29,
+#   source_text =  "MTA Permanent Art Catalog: Beginning 1980"
+# )
 
 ### |-  fonts ----
 setup_fonts()
@@ -319,6 +318,101 @@ weekly_theme <- extend_weekly_theme(
 
 # Set theme
 theme_set(weekly_theme)
+```
+
+```{r}
+
+p <- ggplot(data = species_rich_final,
+            aes(x = year, 
+                y = spp_rich, 
+                color = transect_name)) +
+
+  # Geoms
+  geom_line(size = 1.3, alpha = 0.9) +
+  gghighlight(
+    use_direct_label = FALSE,
+    unhighlighted_params = list(
+      linewidth = 0.3,
+      alpha = 0.75,
+      color = "gray60"
+    )
+  ) +
+  # Scales
+  scale_color_manual(
+    values = c(
+      "VP-01" = highlight_color,
+      "VP-02" = highlight_color,
+      "VP-03" = highlight_color,
+      "VP-04" = highlight_color,
+      "VP-05" = highlight_color,
+      "VP-06" = highlight_color,
+      "VP-07" = highlight_color,
+      "VP-08" = highlight_color
+    ),
+    guide = "none"
+  ) +
+  scale_x_continuous(
+    breaks = seq(2021, 2022, 2023, 2024, 2025),
+    expand = expansion(mult = c(0.01, 0.01))
+  ) +
+  scale_y_continuous(
+    expand = expansion(mult = c(0.0, 0.1))
+  ) +
+  # Labs
+  labs(
+    title = "title_text",
+    subtitle = "subtitle_text",
+    caption = "caption_text",
+    x = "NULL",
+    y = "Number of Installations"
+  ) +
+  # Facets
+  facet_wrap(~transect_name,
+    scales = "free_y", ncol = 3
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      size = rel(1.7),
+      family = fonts$title,
+      face = "bold",
+      color = colors$title,
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      size = rel(0.95),
+      family = fonts$subtitle,
+      color = alpha(colors$subtitle, 0.9),
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      size = rel(0.65),
+      family = fonts$caption,
+      color = colors$caption,
+      hjust = 0,
+      margin = margin(t = 15, b = 5, l = 0),
+      lineheight = 1.3
+    ),
+    strip.text = element_text(
+      size = 12,
+      face = "bold",
+      color = "gray20",
+      family = fonts$body_bold,
+      margin = margin(t = 5, b = 5)
+    ),
+    strip.background = element_rect(
+      fill = "gray95",
+      color = "white",
+      linewidth = 0.5
+    ),
+    panel.spacing = unit(1.5, "lines"),
+  )
+
+
+
+
 
 
 
