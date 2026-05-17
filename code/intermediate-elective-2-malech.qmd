@@ -259,8 +259,18 @@ species_rich <- pools_explicit0 |>
   filter(psoc %in% native_spp, mean_pc > 0) |> 
 # species richness calculation
   summarize(spp_rich = n_distinct(psoc)) |> 
-  # ungroup data frame
-  ungroup()
+  mutate(transect_name = case_when(
+    transect_name == "VP-01" ~ "Pool 1",
+    transect_name == "VP-02" ~ "Pool 2",
+    transect_name == "VP-03" ~ "Pool 3",
+    transect_name == "VP-04" ~ "Pool 4",
+    transect_name == "VP-05" ~ "Pool 5",
+    transect_name == "VP-06" ~ "Pool 6",
+    transect_name == "VP-07" ~ "Pool 7",
+    transect_name == "VP-08" ~ "Pool 8" 
+  ))
+  # # ungroup data frame
+  # ungroup()
 
 # sample 10 rows
 slice_sample(species_rich, n = 10)
@@ -280,14 +290,14 @@ species_rich_final$year <- as.factor(species_rich_final$year)
 
 colors <- scale_color_manual(
   values = c(
-      "VP-01" = "#285943",
-      "VP-02" = "#D36582",
-      "VP-03" = "#82204A",
-      "VP-04" = "#74546A",
-      "VP-05" = "#C490D1",
-      "VP-06" = "#FFB7C3",
-      "VP-07" = "#5FB0B7",
-      "VP-08" = "#6C91BF"
+      "Pool 1" = "#285943",
+      "Pool 2" = "#D36582",
+      "Pool 3" = "#82204A",
+      "Pool 4" = "#74546A",
+      "Pool 5" = "#C490D1",
+      "Pool 6" = "#FFB7C3",
+      "Pool 7" = "#5FB0B7",
+      "Pool 8" = "#6C91BF"
   ))
 
 species_rich_final$year <- as.numeric(species_rich_final$year)
@@ -304,25 +314,21 @@ p <- ggplot(data = species_rich_final,
                 )) +
 
   # Geoms
-  geom_line(size = 1.3,
+  geom_line(size = 1.7,
             alpha = 0.9) +
   gghighlight(
     use_direct_label = FALSE,
     unhighlighted_params = list(
-      linewidth = 0.3,
+      linewidth = 0.7,
       alpha = 0.75,
       color = "gray60"
     )
   ) +
   # Scales
   colors +
-  # scale_x_continuous(
-  #   breaks = seq(2021, 2025, 1),
-  #   expand = c(0, 0),
-  #   limits = c(1, 5)) +
   scale_y_continuous(
     expand = c(0, 0),
-    limits = c(-1, 30)
+    limits = c(0, 30)
   ) +
   # Labs
   labs(
@@ -330,7 +336,7 @@ p <- ggplot(data = species_rich_final,
     subtitle = "Grouped by vernal pool",
     caption = "Data derived from ENVS193DD, UCSB",
     x = "Year",
-    y = "Species richness"
+    y = "Species richness (n)"
   ) +
   # Facets
   facet_wrap(~transect_name,
@@ -392,7 +398,73 @@ slice_sample(log_aq_ins, n = 10)
 ```{r}
 #| label: inv-vis
 
+p2 <- ggplot(data = log_aq_ins,
+            aes(x = year, 
+                y = spp_rich,
+                colour = transect_name,
+                fill = transect_name
+                )) +
 
+  # Geoms
+  geom_line(size = 1.7,
+            alpha = 0.9) +
+  gghighlight(
+    use_direct_label = FALSE,
+    unhighlighted_params = list(
+      linewidth = 0.7,
+      alpha = 0.75,
+      color = "gray60"
+    )
+  ) +
+  # Scales
+  colors +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(0, 30)
+  ) +
+  # Labs
+  labs(
+    title = "Species richness over time (2021-2025)",
+    subtitle = "Grouped by vernal pool",
+    caption = "Data derived from ENVS193DD, UCSB",
+    x = "Year",
+    y = "Species richness (n)"
+  ) +
+  # Facets
+  facet_wrap(~site,
+    scales = "free", ncol = 3
+  ) +
+  # Theme
+  theme(
+    plot.title = element_text(
+      face = "bold",
+      lineheight = 1.1,
+      margin = margin(t = 5, b = 5)
+    ),
+    plot.subtitle = element_text(
+      lineheight = 1.2,
+      margin = margin(t = 5, b = 20)
+    ),
+    plot.caption = element_markdown(
+      hjust = 0,
+      margin = margin(t = 15, b = 5, l = 0),
+      lineheight = 1.3
+    ),
+    strip.text = element_text(
+      size = 12,
+      face = "bold",
+      color = "gray20",
+      margin = margin(t = 5, b = 5)
+    ),
+    strip.background = element_rect(
+      fill = "gray95",
+      color = "white",
+      linewidth = 0.5
+    ),
+    panel.spacing = unit(1.5, "lines"),
+  ) + 
+  theme_bw() +
+  theme(legend.position = "none")
 
 
 
