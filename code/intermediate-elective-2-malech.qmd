@@ -41,6 +41,29 @@ library(readxl)
 
 # arranging plots
 library(patchwork)
+
+## 1. LOAD PACKAGES & SETUP ----
+suppressPackageStartupMessages({
+if (!require("pacman")) install.packages("pacman")
+pacman::p_load(
+    tidyverse,  # Easily Install and Load the 'Tidyverse'
+    ggtext,     # Improved Text Rendering Support for 'ggplot2'
+    showtext,   # Using Fonts More Easily in R Graphs
+    janitor,    # Simple Tools for Examining and Cleaning Dirty Data
+    scales,     # Scale Functions for Visualization
+    glue,       # Interpreted String Literals
+    gghighlight # Highlight Lines and Points in 'ggplot2'
+  )})
+
+### |- figure size ----
+camcorder::gg_record(
+  dir    = here::here("temp_plots"),
+  device = "png",
+  width  = 8,
+  height = 8,
+  units  = "in",
+  dpi    = 320
+)
 ```
 
 ## Read-in data
@@ -255,69 +278,19 @@ species_rich_final$year <- as.factor(species_rich_final$year)
 ```{r}
 #| label: veg-vis
 
-# highlight_color <- "#4A9782"
-# 
-# colors <- palette = c(
-#       "VP-01" = highlight_color,
-#       "VP-02" = highlight_color,
-#       "VP-03" = highlight_color,
-#       "VP-04" = highlight_color,
-#       "VP-05" = highlight_color,
-#       "VP-06" = highlight_color,
-#       "VP-07" = highlight_color,
-#       "VP-08" = highlight_color
-#   )
-# )
+colors <- scale_color_manual(
+  values = c(
+      "VP-01" = "#BCF4F5",
+      "VP-02" = "#B4EBCA",
+      "VP-03" = "#D9F2B4",
+      "VP-04" = "#D3FAC7",
+      "VP-05" = "#D3FAC7",
+      "VP-06" = "#FFB7C3",
+      "VP-07" = "#5FB0B7",
+      "VP-08" = "#6C91BF"
+  ))
 
-### |- titles and caption ----
-title_text <- str_glue("INSERT TITLE")
-subtitle_text <- str_glue("SUBTITLE")
-
-# caption_text <- create_social_caption(
-#   tt_year = 2025,
-#   tt_week = 29,
-#   source_text =  "MTA Permanent Art Catalog: Beginning 1980"
-# )
-
-### |-  fonts ----
-setup_fonts()
-fonts <- get_font_families()
-
-### |-  plot theme ----
-
-# Start with base theme
-base_theme <- create_base_theme(colors)
-
-# Add weekly-specific theme elements
-weekly_theme <- extend_weekly_theme(
-  base_theme,
-  theme(
-    axis.line = element_blank(), 
-    axis.ticks = element_blank(), 
-    
-    # Grid elements
-    panel.grid.major.y = element_line(color = "gray90",linetype = "solid", linewidth = 0.3),
-    panel.grid.minor.y = element_blank(), 
-    panel.grid.major.x = element_blank(), 
-    panel.grid.minor.x = element_blank(), 
-  
-    # Axis elements
-    axis.text = element_text(color = colors$text, size = rel(0.7)),
-    axis.title.x = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(t = 15)),
-    axis.title.y = element_text(color = colors$text, face = "bold", size = rel(0.8), margin = margin(r = 10)),
-
-    # Legend elements
-    legend.position = "plot",
-    legend.title = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.8), face = "bold"),
-    legend.text = element_text(family = fonts$tsubtitle, color = colors$text, size = rel(0.7)),
-
-    # Plot margin
-    plot.margin = margin(t = 15, r = 15, b = 15, l = 15),
-  )
-)
-
-# Set theme
-theme_set(weekly_theme)
+species_rich_final$year <- as.numeric(species_rich_final$year)
 ```
 
 ```{r}
@@ -325,11 +298,14 @@ theme_set(weekly_theme)
 p <- ggplot(data = species_rich_final,
             aes(x = year, 
                 y = spp_rich, 
-                color = transect_name)) +
+                )) +
 
   # Geoms
-  geom_line(size = 1.3, alpha = 0.9) +
+  geom_line(size = 1.3,
+            alpha = 0.9,
+            group = transect_name) +
   gghighlight(
+    group_key == transect_name,
     use_direct_label = FALSE,
     unhighlighted_params = list(
       linewidth = 0.3,
@@ -338,23 +314,11 @@ p <- ggplot(data = species_rich_final,
     )
   ) +
   # Scales
-  scale_color_manual(
-    values = c(
-      "VP-01" = highlight_color,
-      "VP-02" = highlight_color,
-      "VP-03" = highlight_color,
-      "VP-04" = highlight_color,
-      "VP-05" = highlight_color,
-      "VP-06" = highlight_color,
-      "VP-07" = highlight_color,
-      "VP-08" = highlight_color
-    ),
-    guide = "none"
-  ) +
-  scale_x_continuous(
-    breaks = seq(2021, 2022, 2023, 2024, 2025),
-    expand = expansion(mult = c(0.01, 0.01))
-  ) +
+  colors +
+  # scale_x_continuous(
+  #   breaks = seq(1980, 2020, 20),
+  #   expand = expansion(mult = c(0.01, 0.01))
+  # ) +
   scale_y_continuous(
     expand = expansion(mult = c(0.0, 0.1))
   ) +
@@ -373,24 +337,15 @@ p <- ggplot(data = species_rich_final,
   # Theme
   theme(
     plot.title = element_text(
-      size = rel(1.7),
-      family = fonts$title,
       face = "bold",
-      color = colors$title,
       lineheight = 1.1,
       margin = margin(t = 5, b = 5)
     ),
     plot.subtitle = element_text(
-      size = rel(0.95),
-      family = fonts$subtitle,
-      color = alpha(colors$subtitle, 0.9),
       lineheight = 1.2,
       margin = margin(t = 5, b = 20)
     ),
     plot.caption = element_markdown(
-      size = rel(0.65),
-      family = fonts$caption,
-      color = colors$caption,
       hjust = 0,
       margin = margin(t = 15, b = 5, l = 0),
       lineheight = 1.3
@@ -399,7 +354,6 @@ p <- ggplot(data = species_rich_final,
       size = 12,
       face = "bold",
       color = "gray20",
-      family = fonts$body_bold,
       margin = margin(t = 5, b = 5)
     ),
     strip.background = element_rect(
@@ -410,14 +364,7 @@ p <- ggplot(data = species_rich_final,
     panel.spacing = unit(1.5, "lines"),
   )
 
-
-
-
-
-
-
-
-
+p
 ```
 
 # Invertebrates
