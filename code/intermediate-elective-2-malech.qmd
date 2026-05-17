@@ -276,15 +276,15 @@ species_rich_final$year <- as.factor(species_rich_final$year)
 ## Vegetation visualization
 
 ```{r}
-#| label: veg-vis
+#| label: veg-colors
 
 colors <- scale_color_manual(
   values = c(
-      "VP-01" = "#BCF4F5",
-      "VP-02" = "#B4EBCA",
-      "VP-03" = "#D9F2B4",
-      "VP-04" = "#D3FAC7",
-      "VP-05" = "#D3FAC7",
+      "VP-01" = "#285943",
+      "VP-02" = "#D36582",
+      "VP-03" = "#82204A",
+      "VP-04" = "#74546A",
+      "VP-05" = "#C490D1",
       "VP-06" = "#FFB7C3",
       "VP-07" = "#5FB0B7",
       "VP-08" = "#6C91BF"
@@ -294,6 +294,7 @@ species_rich_final$year <- as.numeric(species_rich_final$year)
 ```
 
 ```{r}
+#| label: veg-plot
 
 p <- ggplot(data = species_rich_final,
             aes(x = year, 
@@ -316,23 +317,24 @@ p <- ggplot(data = species_rich_final,
   # Scales
   colors +
   # scale_x_continuous(
-  #   breaks = seq(1980, 2020, 20),
-  #   expand = expansion(mult = c(0.01, 0.01))
-  # ) +
+  #   breaks = seq(2021, 2025, 1),
+  #   expand = c(0, 0),
+  #   limits = c(1, 5)) +
   scale_y_continuous(
-    expand = expansion(mult = c(0.0, 0.1))
+    expand = c(0, 0),
+    limits = c(-1, 30)
   ) +
   # Labs
   labs(
-    title = "title_text",
-    subtitle = "subtitle_text",
-    caption = "caption_text",
-    x = "NULL",
-    y = "Number of Installations"
+    title = "Species richness over time (2021-2025)",
+    subtitle = "Grouped by vernal pool",
+    caption = "Data derived from ENVS193DD, UCSB",
+    x = "Year",
+    y = "Species richness"
   ) +
   # Facets
   facet_wrap(~transect_name,
-    scales = "free_y", ncol = 3
+    scales = "free", ncol = 3
   ) +
   # Theme
   theme(
@@ -362,7 +364,9 @@ p <- ggplot(data = species_rich_final,
       linewidth = 0.5
     ),
     panel.spacing = unit(1.5, "lines"),
-  )
+  ) + 
+  theme_bw() +
+  theme(legend.position = "none")
 
 p
 ```
