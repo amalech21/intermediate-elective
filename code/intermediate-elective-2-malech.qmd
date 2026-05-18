@@ -25,12 +25,9 @@ library(tidyverse)
 library(here)
 library(janitor)
 library(snakecase)
-library(Cairo)
 
 # customization
 library(prismatic)
-library(extrafont)
-library(scales)
 library(stringr)
 
 # wrapping axis labels
@@ -219,19 +216,9 @@ The visualization I chose for my inspiration was [Steven Ponce's "Evolution of M
 
 # 2. Plan your figure
 
-Sketch what your figure would look like following your inspiration.
-
-Insert that sketch (as a photo, screenshot, or otherwise) into your document.
+[Visualization plan](/vis-plan/Page2.png)
 
 # 3. Code your figure
-
-Clean/wrangle your data as needed.
-
-Then, code the figure you decided to create.
-
-Make sure all your code is annotated, and that the output is showing.
-
-At the end of this section, include code to save your final figure as a .jpg or .png file.
 
 # Vegetation
 
@@ -280,7 +267,9 @@ species_rich_final <- species_rich |>
   mutate(mean_pool = mean(spp_rich)) |> 
   ungroup()
 
-species_rich_final$year <- as.factor(species_rich_final$year)
+# species_rich_final$year <- as.factor(species_rich_final$year)
+
+species_rich_final$year <- rep(2021:2025, each = 8)
 ```
 
 ## Vegetation visualization
@@ -305,8 +294,8 @@ species_rich_final$year <- as.numeric(species_rich_final$year)
 
 ```{r}
 #| label: veg-plot
-#| fig-width: 14
-#| fig-height: 12
+#| results: 'hide'
+#| fig-show: 'hide'
 
 p <- ggplot(data = species_rich_final,
             aes(x = year, 
@@ -334,15 +323,14 @@ p <- ggplot(data = species_rich_final,
   ) +
   # Labs
   labs(
-    title = "Species richness over time (2021-2025)",
-    subtitle = "Grouped by vernal pool",
-    caption = "Data derived from ENVS193DD course, UCSB",
+    title = "MAIN TITLE",
+    subtitle = "Species richness over time (2021-2025)\nGrouped by vernal pool",
     x = "Year",
     y = "Species richness (n)"
   ) +
   # Facets
   facet_wrap(~transect_name,
-    scales = "free", ncol = 3
+    scales = "free", ncol = 2
   ) +
   # Theme
   theme(
@@ -375,8 +363,6 @@ p <- ggplot(data = species_rich_final,
   ) + 
   theme_bw() +
   theme(legend.position = "none")
-
-p
 ```
 
 # Invertebrates
@@ -405,7 +391,6 @@ log_aq_ins <- aq_ins_clean |>
 
 # sample of ten rows
 slice_sample(log_aq_ins, n = 10)
-view(log_aq_ins)
 ```
 
 ## Invertebrate visualization
@@ -414,7 +399,7 @@ view(log_aq_ins)
 #| label: invert-colors
 
 # creating colors object for ggplot
-colors2 <- scale_color_manual(
+colors2 <- scale_fill_manual(
   values = c(
       "Devereux Creek" = "#07beb8",
       "North of Venoco Bridge" = "#3dccc7",
@@ -428,17 +413,18 @@ colors2 <- scale_color_manual(
 
 ```{r}
 #| label: inv-vis
-#| fig-width: 18
-#| fig-height: 12
+#| results: 'hide'
+#| fig-show: 'hide'
 
 p2 <- ggplot(data = log_aq_ins,
             aes(x = taxon,
                 y = log_ave_lit,
-                colour = site_full,
                 fill = site_full
                 )) +
   # geometries
-  geom_jitter(height = 0, shape = 21, width = 0.1) +
+  geom_jitter(height = 0,
+              shape = 21,
+              width = 0.1) +
 # adding median points
   stat_summary(geom = "point",
                fun = "median",
@@ -460,15 +446,15 @@ p2 <- ggplot(data = log_aq_ins,
   ) +
   # Labs
   labs(
-    title = "Median Aquatic invertabrate abundance/L\nat NCOS sites (2020-2024)",
-    subtitle = "Median abundance as blue points",
-    caption = "Data derived from ENVS193DD course, UCSB",
+    subtitle = "Median Aquatic invertabrate abundance/L at NCOS sites (2020-2024)",
+    caption = "Data derived from ENVS193DD course, UCSB
+    Visualization credit Steven Ponce (https://github.com/poncest)",
     x = "Taxon",
     y = "log +1 transformed average abundance/L"
   ) +
   # Facets
   facet_wrap(~site_full,
-    scales = "free", ncol = 3
+    scales = "free", ncol = 2
   ) +
   # wrapping x-axis text
   scale_x_discrete(labels = label_wrap(width = 10)) +
@@ -503,13 +489,15 @@ p2 <- ggplot(data = log_aq_ins,
   ) +
   theme_bw() +
   theme(legend.position = "none")
-
-p2
 ```
 
 ## Putting it all together
 ```{r}
 #| label: veg-&-invert-plots
+#| fig-width: 20
+#| fig-height: 18
+#| fig-show: 'asis'
+
 
 p / p2
 ```
@@ -519,3 +507,6 @@ p / p2
 - your process of using someone else’s code to create a visualization
 - challenges you encountered as you made your visualization
 - how your visualization differs from visualizations you made in class, for assignments, or for a previous elective
+
+
+- update readme for right packages

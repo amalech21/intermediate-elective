@@ -4,6 +4,8 @@
 
 This repository contains data and code to explore patterns in aquatic invertebrate abundance and vegetation abundance in vernal pools at NCOS.
 
+Visualizations in this code were inspired by [Steven Ponce's "Evolution of MTA Art Materials (1980-2020)"](https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/tt_2025_29.html)
+
 To work with the code in this repository, you will need the following packages:
 
 ```
