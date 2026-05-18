@@ -44,4 +44,4 @@ library(stringr)
 [here](/vis-plan/Page2.png)
 
 # rendered png for final visualization can be found
-[here]()
+[here](https://github.com/amalech21/intermediate-elective/tree/main/final_plot)
