@@ -28,6 +28,7 @@ library(patchwork)
 │   └── taxon_list.csv                            # taxonomic information
 │   └── veg.csv                                   # vegetation survey data
 │   └── vp_veg_metadata.csv                       # veg survey information
+├── temp_plots                                    # saved png files of final plot output
 └── intermediate-elective.Rproj
 
 ## Rendered Output

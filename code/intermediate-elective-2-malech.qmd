@@ -336,7 +336,7 @@ p <- ggplot(data = species_rich_final,
   labs(
     title = "Species richness over time (2021-2025)",
     subtitle = "Grouped by vernal pool",
-    caption = "Data derived from ENVS193DD, UCSB",
+    caption = "Data derived from ENVS193DD course, UCSB",
     x = "Year",
     y = "Species richness (n)"
   ) +
@@ -388,17 +388,24 @@ p
 
 # new object from aq_ins_clean
 log_aq_ins <- aq_ins_clean |>
+  # mutate to get taxon group -species
+  mutate(taxon = case_when(
+    str_detect(taxon, "annelida") ~ "Annelida",
+    str_detect(taxon, "cladocera") ~ "Cladocera",
+    str_detect(taxon, "copepod") ~ "Copepod",
+    str_detect(taxon, "diptera") ~ "Diptera",
+    str_detect(taxon, "hemiptera") ~ "Hemiptera",
+    str_detect(taxon, "nematode") ~ "Nematode",
+    str_detect(taxon, "ostracod") ~ "Ostracod"
+  )) |> 
   # log + 1 transform mean abundance per liter
   mutate(log_ave_lit = log(ave_lit + 1)) |>
-  subset(!is.na(med_sal)) |> 
+  subset(!is.na(med_do)) |> 
   arrange(desc(log_ave_lit))
-
-native_aq <- log_aq_ins |> 
-# pull to extract data frame column as a vector
-  pull(taxon)
 
 # sample of ten rows
 slice_sample(log_aq_ins, n = 10)
+view(log_aq_ins)
 ```
 
 ## Invertebrate visualization
@@ -409,28 +416,34 @@ slice_sample(log_aq_ins, n = 10)
 # creating colors object for ggplot
 colors2 <- scale_color_manual(
   values = c(
-      "Devereux Creek" = "#285943",
-      "North of Venoco Bridge" = "#D36582",
-      "South of Phelps Bridge" = "#82204A",
-      "Phelps Road" = "#74546A",
-      "South of Venoco Bridge" = "#C490D1",
-      "North of Phelps Bridge" = "#FFB7C3",
-      "Main Channel" = "#5FB0B7"
+      "Devereux Creek" = "#07beb8",
+      "North of Venoco Bridge" = "#3dccc7",
+      "South of Phelps Bridge" = "#68d8d6",
+      "Phelps Road" = "#9ceaef",
+      "South of Venoco Bridge" = "#c4fff9",
+      "North of Phelps Bridge" = "#b2f7ef",
+      "Main Channel" = "#bee9e8"
   ))
 ```
 
 ```{r}
 #| label: inv-vis
+#| fig-width: 18
+#| fig-height: 12
 
 p2 <- ggplot(data = log_aq_ins,
-            aes(x = med_sal,
+            aes(x = taxon,
                 y = log_ave_lit,
                 colour = site_full,
                 fill = site_full
                 )) +
-  # Geoms
-  geom_line(size = 1.7,
-            alpha = 0.9) +
+  # geometries
+  geom_jitter(height = 0, shape = 21, width = 0.1) +
+# adding median points
+  stat_summary(geom = "point",
+               fun = "median",
+               size = 3,
+               color = "darkblue") +
   gghighlight(
     use_direct_label = FALSE,
     unhighlighted_params = list(
@@ -441,22 +454,24 @@ p2 <- ggplot(data = log_aq_ins,
   ) +
   # Scales
   colors2 +
-  # scale_y_continuous(
-  #   expand = c(0, 0),
-  #   limits = c(0, 30)
-  # ) +
+  scale_y_continuous(
+    expand = c(0, 0),
+    limits = c(-0.3, 7)
+  ) +
   # Labs
   labs(
-    title = "Species richness over time (2021-2025)",
-    subtitle = "Grouped by vernal pool",
-    caption = "Data derived from ENVS193DD, UCSB",
-    x = "Year",
-    y = "Species richness (n)"
+    title = "Median Aquatic invertabrate abundance/L\nat NCOS sites (2020-2024)",
+    subtitle = "Median abundance as blue points",
+    caption = "Data derived from ENVS193DD course, UCSB",
+    x = "Taxon",
+    y = "log +1 transformed average abundance/L"
   ) +
   # Facets
   facet_wrap(~site_full,
     scales = "free", ncol = 3
   ) +
+  # wrapping x-axis text
+  scale_x_discrete(labels = label_wrap(width = 10)) +
   # Theme
   theme(
     plot.title = element_text(
@@ -490,6 +505,13 @@ p2 <- ggplot(data = log_aq_ins,
   theme(legend.position = "none")
 
 p2
+```
+
+## Putting it all together
+```{r}
+#| label: veg-&-invert-plots
+
+p / p2
 ```
 
 # 4. In 1-3 sentences each, describe:
