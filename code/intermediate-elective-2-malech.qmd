@@ -8,7 +8,7 @@ format:
          \usepackage{fvextra}
          \DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
          \DefineVerbatimEnvironment{OutputCode}{Verbatim}{breaklines,commandchars=\\\{\}}
-date: "2026-05-15"
+date: "2026-05-17"
 execute: 
   warning: false
   messages: false
@@ -69,11 +69,14 @@ camcorder::gg_record(
 
 # WEEK 4 data
 
+# vegetation survey data
 veg <- read_csv(here("data", "veg.csv"))
 
+# vegetation survey information
 metadata <- read_csv(here("data", "vp_veg_metadata.csv"))
 
 # WEEK 5 data
+
 # taxonomic information
 taxon_list <- read_csv(here("data", "taxon_list.csv")) 
 
@@ -207,12 +210,20 @@ aq_ins_clean <- aq_ins |>
 
 # 1. Explain your inspiration
 
-In 1-2 sentences each, describe:
+The visualization I chose for my inspiration was [Steven Ponce's "Evolution of MTA Art Materials (1980-2020)"](https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/tt_2025_29.html). I am trying to find the relationship between vegetation and its explanatory variables as well as invertebrate abundance and its explanatory variables. Both datasets have observations taken from multiple locations, so it makes sense to use this visualization as it allows fo multiple panels to be plotted. Additionally, the background lines being subsetted into each panel can help capture the variation of richness of species/abundance of each taxon between each site. 
 
-The visualization I chose for my inspiration was [Steven Ponce's "Evolution of MTA Art Materials (1980-2020)"](https://stevenponce.netlify.app/data_visualizations/TidyTuesday/2025/tt_2025_29.html). This makes sense for the data sets that I am utilizing because I am trying to find the relationship between vegetation and its explanatory variables as well as invertebrate abundance and its explanatory variables. The circular graph will be able to show the abundance of both vegetation and invertebrates, as well as a statistical summary of the mean. 
+The variables from the veg data set that I will use are:
+- `transect_name` 
+- `cover_category`
+- `psoc` 
+- `year` 
+I want to visualize each pools richness over time with line geometries (representing species richness) to connect them. Colors will vary from each panel based on pool, and the background lines will be grey like Steven Ponce's visual.
 
-- which variables from your dataset will be shown in your visualization, and what visual components they map onto (axes, shapes, colors, etc.)
-
+The variables from the invertebrate data set that I will use are:
+- `ave_lit`
+- `site_full`
+- `taxon`
+I want to visualize each sites abundance in different aquatic invertebrates using a log +1 transformation, jitter points for individual observations, and summary points for the median of the average abundance points. Jitter points will be colored a different shade of blue for each site, and the statistic point will be dark blue. 
 
 # 2. Plan your figure
 
@@ -223,7 +234,7 @@ The visualization I chose for my inspiration was [Steven Ponce's "Evolution of M
 
 # Vegetation
 
-## Vegetation graphs code
+## Vegetation code
 
 ```{r}
 #| label: veg-code
@@ -243,10 +254,11 @@ species_rich <- pools_explicit0 |>
 # group by year and pool
   group_by(year, transect_name) |> 
 # filter data frame with vector \nto get native species, 
-# also filter percent cover to identofy species presence
+# also filter percent cover to identify presence of species
   filter(psoc %in% native_spp, mean_pc > 0) |> 
 # species richness calculation
   summarize(spp_rich = n_distinct(psoc)) |> 
+# change pool names to be more understandable
   mutate(transect_name = case_when(
     transect_name == "VP-01" ~ "Pool 1",
     transect_name == "VP-02" ~ "Pool 2",
@@ -257,20 +269,12 @@ species_rich <- pools_explicit0 |>
     transect_name == "VP-07" ~ "Pool 7",
     transect_name == "VP-08" ~ "Pool 8" 
   ))
-  # # ungroup data frame
-  # ungroup()
 
 # sample 10 rows
 slice_sample(species_rich, n = 10)
 
-species_rich_final <- species_rich |>
-  group_by(year) |>
-  mutate(mean_pool = mean(spp_rich)) |> 
-  ungroup()
-
-# species_rich_final$year <- as.factor(species_rich_final$year)
-
-species_rich_final$year <- rep(2021:2025, each = 8)
+# changing years from factors (1-5) to years (2021-2025)
+species_rich$year <- rep(2021:2025, each = 8)
 ```
 
 ## Vegetation visualization
@@ -278,6 +282,7 @@ species_rich_final$year <- rep(2021:2025, each = 8)
 ```{r}
 #| label: veg-colors
 
+# creating colors for veg visualization
 colors <- scale_color_manual(
   values = c(
       "Pool 1" = "#285943",
@@ -290,7 +295,8 @@ colors <- scale_color_manual(
       "Pool 8" = "#6C91BF"
   ))
 
-species_rich_final$year <- as.numeric(species_rich_final$year)
+# ensuring R reads year column as numeric, not str
+species_rich$year <- as.numeric(species_rich$year)
 ```
 
 ```{r}
@@ -298,7 +304,8 @@ species_rich_final$year <- as.numeric(species_rich_final$year)
 #| results: 'hide'
 #| fig-show: 'hide'
 
-p <- ggplot(data = species_rich_final,
+# creating new ggplot layer, adding data
+p <- ggplot(data = species_rich,
             aes(x = year, 
                 y = spp_rich,
                 colour = transect_name,
@@ -308,6 +315,7 @@ p <- ggplot(data = species_rich_final,
   # Geoms
   geom_line(size = 1.7,
             alpha = 0.9) +
+  # gghighlight to add background lines
   gghighlight(
     use_direct_label = FALSE,
     unhighlighted_params = list(
@@ -316,54 +324,66 @@ p <- ggplot(data = species_rich_final,
       color = "gray60"
     )
   ) +
-  # Scales
+  # Adding custom colors
   colors +
+  # manipulating y scales
   scale_y_continuous(
     expand = c(0, 0),
     limits = c(0, 30)
   ) +
-  # Labs
+  # adding labels
   labs(
-    title = "MAIN TITLE",
-    subtitle = "Species richness over time (2021-2025)\nGrouped by vernal pool",
+    title = "Species richness of vegetation and abundance of macroinvertabrates at NCOS sites",
+    subtitle = "Species richness over time (2021-2025), grouped by vernal pool",
     x = "Year",
     y = "Species richness (n)"
   ) +
-  # Facets
+  # faceting by pool
   facet_wrap(~transect_name,
     scales = "free", ncol = 2
   ) +
   # Theme
   theme(
+    # adding title customization
     plot.title = element_text(
       face = "bold",
       lineheight = 1.1,
       margin = margin(t = 5, b = 5)
     ),
+    # adding subtitle customization
     plot.subtitle = element_text(
       lineheight = 1.2,
       margin = margin(t = 5, b = 20)
     ),
+    # adding caption customization
     plot.caption = element_markdown(
       hjust = 0,
       margin = margin(t = 15, b = 5, l = 0),
       lineheight = 1.3
     ),
+    # axis customization
     strip.text = element_text(
       size = 12,
       face = "bold",
       color = "gray20",
       margin = margin(t = 5, b = 5)
     ),
+    # axis customiaztion
     strip.background = element_rect(
       fill = "gray95",
       color = "white",
       linewidth = 0.5
     ),
+    # space each panel facet
     panel.spacing = unit(1.5, "lines"),
   ) + 
+  # changing theme from default
   theme_bw() +
+  # removing legend
   theme(legend.position = "none")
+
+# showing plot
+p
 ```
 
 # Invertebrates
@@ -387,7 +407,6 @@ log_aq_ins <- aq_ins_clean |>
   )) |> 
   # log + 1 transform mean abundance per liter
   mutate(log_ave_lit = log(ave_lit + 1)) |>
-  subset(!is.na(med_do)) |> 
   arrange(desc(log_ave_lit))
 
 # sample of ten rows
@@ -445,15 +464,15 @@ p2 <- ggplot(data = log_aq_ins,
     expand = c(0, 0),
     limits = c(-0.3, 7)
   ) +
-  # Labs
+  # adding labels
   labs(
-    subtitle = "Median Aquatic invertabrate abundance/L at NCOS sites (2020-2024)",
+    subtitle = "Median Aquatic invertabrate abundance/L at NCOS sites (2020-2024)\nMedian point shown in dark blue",
     caption = "Data derived from ENVS193DD course, UCSB
     Visualization credit Steven Ponce (https://github.com/poncest)",
     x = "Taxon",
     y = "log +1 transformed average abundance/L"
   ) +
-  # Facets
+  # faceting by site
   facet_wrap(~site_full,
     scales = "free", ncol = 2
   ) +
@@ -461,35 +480,46 @@ p2 <- ggplot(data = log_aq_ins,
   scale_x_discrete(labels = label_wrap(width = 10)) +
   # Theme
   theme(
+    # bold title
     plot.title = element_text(
       face = "bold",
       lineheight = 1.1,
       margin = margin(t = 5, b = 5)
     ),
+    # adding subtitle
     plot.subtitle = element_text(
       lineheight = 1.2,
       margin = margin(t = 5, b = 20)
     ),
+    # adding caption
     plot.caption = element_markdown(
       hjust = 0,
       margin = margin(t = 15, b = 5, l = 0),
       lineheight = 1.3
     ),
+    # axis text
     strip.text = element_text(
       size = 12,
       face = "bold",
       color = "gray20",
       margin = margin(t = 5, b = 5)
     ),
+    # axis text
     strip.background = element_rect(
       fill = "gray95",
       color = "white",
       linewidth = 0.5
     ),
+    # space each panel facet
     panel.spacing = unit(1.5, "lines"),
   ) +
+  # changing plot theme from default
   theme_bw() +
+  # removing legend
   theme(legend.position = "none")
+
+# showing plot
+p2
 ```
 
 ## Putting it all together
@@ -499,15 +529,15 @@ p2 <- ggplot(data = log_aq_ins,
 #| fig-height: 18
 #| fig-show: 'asis'
 
-
+# stacking plots on top of each other
 p / p2
 ```
 
-# 4. In 1-3 sentences each, describe:
+# 4. Describe your process
 
-- your process of using someone else’s code to create a visualization
-- challenges you encountered as you made your visualization
-- how your visualization differs from visualizations you made in class, for assignments, or for a previous elective
+It was difficult to decide which visualization would best represent the story I was trying to tell for vegetation and invertebrate abundance. I originally chose a different visualization (circle graph), but realized this would look too messy as I was using two different data sets. After selecting the visual, the process was essentially pasting the code into my qmd, looking over each portion to understand what each function does, and replacing it with my own code.
 
+Sometimes, the code would not read because the geometries that Ponce used for his data were different from mine. I would need to go back and identify what portions of the code was causing an error, and then figure out what customization would be best for my data. Some of the packages from his visual would not read in correctly as well, so I did take out some of the code that I felt was unnecessary for my plots anyways. 
 
-- update readme for right packages
+I ended up going with the "Evolution of MTA Art Materials" because I thought it would be interesting to the other panels data subsetted (as grey lines) onto each site to easily compare data without having to look over at the other faceted panels. This visualization differs from, for example, the figure we created with stats_summary in week 5 for aquatic invertebrate abundance, because it is able to show the other jitter points from other sites, while having the main points stand out in color. 
+

@@ -17,6 +17,8 @@ library(scales)
 library(readxl)
 library(naniar)
 library(patchwork)
+library(prismatic)
+library(stringr)
 ```
 ## Data and File Information
 
@@ -30,7 +32,8 @@ library(patchwork)
 │   └── taxon_list.csv                            # taxonomic information
 │   └── veg.csv                                   # vegetation survey data
 │   └── vp_veg_metadata.csv                       # veg survey information
-├── temp_plots                                    # saved png files of final plot output
+├── temp_plots                                    # saved png files plots output
+├── final_plot                                    # final plot (USE)
 └── intermediate-elective.Rproj
 
 ## Rendered Output and plan
@@ -41,4 +44,4 @@ library(patchwork)
 [here](/vis-plan/Page2.png)
 
 # rendered png for final visualization can be found
-[here](https://github.com/amalech21/intermediate-elective/tree/main/temp_plots)
+[here]()
