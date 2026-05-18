@@ -33,6 +33,12 @@ library(patchwork)
 ├── temp_plots                                    # saved png files of final plot output
 └── intermediate-elective.Rproj
 
-## Rendered Output
+## Rendered Output and plan
 
 # rendered pdf for intermediate elective 2 can be found [here](https://github.com/amalech21/intermediate-elective/blob/main/code/intermediate-elective-2-malech.pdf)
+
+# the plan for my visualizations can be found
+[here](/vis-plan/Page2.png)
+
+# rendered png for final visualization can be found
+[here](https://github.com/amalech21/intermediate-elective/tree/main/temp_plots)

@@ -217,6 +217,7 @@ The visualization I chose for my inspiration was [Steven Ponce's "Evolution of M
 # 2. Plan your figure
 
 [Visualization plan](/vis-plan/Page2.png)
+(please see README)
 
 # 3. Code your figure
 
